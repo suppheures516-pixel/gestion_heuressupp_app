@@ -1,0 +1,211 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Gestion des Heures{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <style>
+        body { display: flex; min-height: 100vh; background: #f4f6f8; }
+        .sidebar {
+            width: 220px;
+            background: #fff;
+            min-height: 100vh;
+            padding: 1.5rem 0.5rem 1.5rem 0.5rem;
+            border-right: 1px solid #e0e0e0;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.03);
+            transition: width 0.3s;
+            position: relative;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar.closed {
+            width: 60px;
+        }
+        .sidebar-logo {
+            text-align: center;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            max-height: 150px;
+        }
+        .sidebar.closed .sidebar-logo {
+            max-height: 0;
+            margin-bottom: 0;
+            opacity: 0;
+        }
+        .sidebar-toggle {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 2000;
+            background: #0d6efd;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 0.15rem 0.2rem;
+            transition: left 0.3s;
+            height: 28px;
+            min-width: 24px;
+            width: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sidebar-title {
+            margin-left: 48px;
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            transition: opacity 0.3s, width 0.3s, visibility 0.3s;
+        }
+        .sidebar.closed .sidebar-title {
+            opacity: 0;
+            width: 0;
+            visibility: hidden;
+            display: inline-block;
+            overflow: hidden;
+        }
+        .sidebar-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex-grow: 1;
+        }
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid #e9ecef;
+        }
+        .logout-form {
+            width: 100%;
+        }
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            color: #333;
+            text-decoration: none;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            transition: background 0.2s, color 0.2s;
+            font-size: 1rem;
+            min-height: 40px;
+            gap: 12px;
+        }
+        .sidebar .sidebar-icon-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #e7f1ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s, transform 0.2s;
+            font-size: 1.3rem;
+            color: #0d6efd;
+        }
+        .sidebar a.active .sidebar-icon-circle,
+        .sidebar a:hover .sidebar-icon-circle {
+            background: #0d6efd;
+            color: #fff;
+            transform: scale(1.08);
+        }
+        .sidebar.closed .sidebar-link-text {
+            display: none;
+        }
+        .sidebar-link-text {
+            white-space: nowrap;
+            font-weight: 500;
+            font-size: 1rem;
+        }
+        .sidebar.closed a {
+            justify-content: center;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 1rem auto;
+            border-radius: 50%;
+            background: none;
+            transition: background 0.2s, color 0.2s, transform 0.2s;
+        }
+        .sidebar.closed a:hover, .sidebar.closed a.active {
+            background: #e7f1ff;
+            color: #0d6efd;
+            transform: scale(1.08);
+        }
+        .sidebar.closed .sidebar-icon-circle {
+            margin: 0;
+            font-size: 1.5rem;
+            min-width: 0;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sidebar.closed .sidebar-logo {
+            margin-bottom: 1rem;
+        }
+        .sidebar.closed .sidebar-toggle {
+            left: 10px;
+        }
+        .content { flex: 1; padding: 2rem; transition: margin-left 0.3s; }
+        @media (max-width: 768px) {
+            .sidebar { position: fixed; z-index: 1050; }
+            .content { padding: 1rem; }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    {% if user.is_authenticated and request.resolver_match.url_name != 'login' %}
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <img src="{% static 'logo.png' %}" alt="Logo" style="width: 120px; height: 120px; object-fit: contain;">
+            </div>
+            <div class="sidebar-links">
+                <a href="{% url 'pointage:accueil' %}" class="{% if request.path == '/' %}active{% endif %}"><span class="sidebar-icon-circle"><i class="bi bi-house"></i></span><span class="sidebar-link-text">Accueil</span></a>
+                <a href="{% url 'pointage:import_excel' %}" class="{% if request.path == '/import/' %}active{% endif %}"><span class="sidebar-icon-circle"><i class="bi bi-upload"></i></span><span class="sidebar-link-text">Importer Excel</span></a>
+                <a href="{% url 'pointage:list_excels' %}" class="{% if request.path == '/excels/' %}active{% endif %}"><span class="sidebar-icon-circle"><i class="bi bi-file-earmark-spreadsheet"></i></span><span class="sidebar-link-text">Fichiers importés</span></a>
+                <a href="{% url 'pointage:heures_supplementaires' %}" class="{% if request.path == '/heures-supplementaires/' %}active{% endif %}"><span class="sidebar-icon-circle"><i class="bi bi-clock-history"></i></span><span class="sidebar-link-text">Heures supp</span></a>
+                <a href="{% url 'pointage:statistique' %}" class="{% if request.path == '/statistique/' %}active{% endif %}"><span class="sidebar-icon-circle"><i class="bi bi-bar-chart"></i></span><span class="sidebar-link-text">Statistiques</span></a>
+                {% if user.is_staff %}
+                <a href="{% url 'pointage:manager_list' %}" class="{% if 'managers' in request.path %}active{% endif %}"><span class="sidebar-icon-circle"><i class="bi bi-people"></i></span><span class="sidebar-link-text">Managers</span></a>
+                {% endif %}
+                <a href="{% url 'pointage:settings' %}" class="{% if 'settings' in request.path %}active{% endif %}"><span class="sidebar-icon-circle"><i class="bi bi-gear"></i></span><span class="sidebar-link-text">Paramètres</span></a>
+            </div>
+            <div class="sidebar-footer">
+                <div class="mb-2 text-muted small sidebar-link-text">Connecté : <strong>{{ user.username }}</strong></div>
+                <form method="post" action="{% url 'logout' %}" class="logout-form">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-link p-0 m-0 align-baseline" style="color:inherit;text-decoration:none;width:100%;text-align:left;">
+                        <span class="sidebar-icon-circle"><i class="bi bi-box-arrow-right"></i></span> <span class="sidebar-link-text">Se déconnecter</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+    <div class="content">
+        {% block content %}{% endblock %}
+    </div>
+    {% block extra_js %}{% endblock %}
+    <script>
+        const sidebar = document.querySelector('.sidebar');
+        
+        // Toggle sidebar on double click
+        sidebar.addEventListener('dblclick', function() {
+            sidebar.classList.toggle('closed');
+            document.querySelector('.main-content').classList.toggle('expanded');
+        });
+        
+        // Prevent text selection on double click
+        sidebar.addEventListener('selectstart', function(e) {
+            if (e.detail > 1) {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html> 

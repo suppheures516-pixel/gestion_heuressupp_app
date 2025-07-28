@@ -1,0 +1,625 @@
+{% extends 'pointage/base.html' %}
+{% block title %}Statistiques Heures Supplémentaires{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <h1 class="display-5 fw-bold" style="letter-spacing:1px;">
+                <span style="border-bottom: 4px solid #0d6efd; padding-bottom: 6px; color: #222;">Statistiques des Heures Supplémentaires</span>
+            </h1>
+        </div>
+    </div>
+    <div class="row mb-2">
+        <div class="col-12">
+            <div class="alert alert-info py-2" style="font-size:1.05rem;">
+                <strong>Fichiers inclus dans les statistiques :</strong>
+                <ul class="mb-0" style="list-style:none; padding-left:0;">
+                    {% for file in included_files %}
+                        <li>
+                            <i class="bi bi-file-earmark-excel"></i>
+                            {{ file.file.name|cut:"uploads/" }}
+                            <span class="text-muted" style="font-size:0.95em;">(importé le {{ file.uploaded_at|date:'d/m/Y H:i' }})</span>
+                        </li>
+                    {% empty %}
+                        <li class="text-danger">Aucun fichier importé.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    {% if stats %}
+    <div class="row gx-4 gy-4 mb-4">
+        <div class="col-12">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Heures supplémentaires par personne</span>
+                        <div class="d-flex gap-2">
+                            <select id="barChartDeptFilter" class="form-select form-select-sm" style="width: auto;">
+                                <option value="">Tous les départements</option>
+                                {% for dept in departments %}
+                                    {% if dept %}
+                                        <option value="{{ dept }}" {% if dept == filter_department %}selected{% endif %}>{{ dept }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                            <select id="barChartMonthFilter" class="form-select form-select-sm" style="width: auto;">
+                                <option value="">Tous les mois</option>
+                                {% for month in months %}
+                                    <option value="{{ month.0 }}" {% if month.0 == selected_month %}selected{% endif %}>{{ month.1 }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <div class="mb-3">
+                        <!-- Filters will go here -->
+                    </div>
+                    <div class="flex-grow-1 d-flex justify-content-center align-items-center">
+                        <canvas id="barChart" style="max-width: 100%; height: 150px; min-width: 1200px; width: 1000px; display: block; box-sizing: border-box;" width="1200" height="225"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-12 col-lg-6">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white text-center d-flex justify-content-between align-items-center">
+                    <span>Répartition des jours avec heures sup</span>
+                    <div class="ms-3" style="width: 200px;">
+                        <select id="pieChartMonthFilter" class="form-select form-select-sm">
+                            <option value="">Tous les mois</option>
+                            {% for month in months %}
+                                <option value="{{ month.0 }}">{{ month.1 }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body d-flex justify-content-center align-items-center">
+                    <canvas id="pieChart" style="max-width: 100%; height: 341px; display: block; box-sizing: border-box; width: 449px;" width="673" height="511"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="card h-100">
+                <div class="card-header bg-warning text-dark text-center">
+                    Heures supplémentaires par jour
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="personSelector" class="form-label">Sélectionner une personne :</label>
+                            <select id="personSelector" class="form-select">
+                                <option value="">-- Sélectionner une personne --</option>
+                                {% for name in all_names %}
+                                    <option value="{{ name }}">{{ name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="monthFilter" class="form-label">Filtrer par mois :</label>
+                            <select name="monthFilter" id="monthFilter" class="form-select">
+                                <option value="">-- Tous --</option>
+                                {% for month in months %}
+                                    <option value="{{ month.0 }}" {% if month.0 == selected_month %}selected{% endif %}>
+                                        {{ month.1 }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="chart-container" style="position: relative; height:280px;">
+                        <canvas id="lineChart" width="673" height="420" style="display: block; box-sizing: border-box; height: 280px; width: 449px;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+        <div class="alert alert-info">Aucune donnée d'heures supplémentaires trouvée pour les filtres sélectionnés.</div>
+    {% endif %}
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+{% if stats %}
+{{ chart_data|json_script:"chartData" }}
+<script>
+    // Récupérer les données depuis le script JSON
+    const chartData = JSON.parse(document.getElementById('chartData').textContent);
+    
+    // Données des employés
+    const labels = chartData.labels;
+    const heuresData = chartData.heuresData;
+    const joursData = chartData.joursData;
+    
+    // Données des départements
+    const deptLabels = chartData.deptLabels;
+    const deptHeuresData = chartData.deptHeuresData;
+    const modernColors = [
+        '#0d6efd', '#198754', '#ffc107', '#dc3545', '#20c997',
+        '#6f42c1', '#ff6384', '#36a2eb', '#ffce56', '#4bc0c0'
+    ];
+    
+    // Generate colors for departments if more than available colors
+    function generateColors(count) {
+        const colors = [];
+        for (let i = 0; i < count; i++) {
+            colors.push(modernColors[i % modernColors.length]);
+        }
+        return colors;
+    }
+
+    // Bar Chart
+    let barChart;
+    
+    // Function to update bar chart data
+    function updateBarChart(deptFilter = '', monthFilter = '') {
+        let url = '{% url "pointage:person_hours_data" %}';
+        const params = new URLSearchParams();
+        
+        if (deptFilter) params.append('department', deptFilter);
+        if (monthFilter) params.append('month', monthFilter);
+        
+        if (params.toString()) {
+            url += '?' + params.toString();
+        }
+        
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.names && data.hours) {
+                    // Update the bar chart data
+                    if (barChart) {
+                        barChart.data.labels = data.names;
+                        barChart.data.datasets[0].data = data.hours;
+                        barChart.update();
+                    }
+                }
+            })
+            .catch(error => console.error('Error fetching bar chart data:', error));
+    }
+    
+    // Initialize bar chart with empty data
+    const barCtx = document.getElementById('barChart').getContext('2d');
+    barChart = new Chart(barCtx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Total Heures Supplémentaires',
+                data: heuresData,
+                backgroundColor: modernColors,
+                borderColor: modernColors,
+                borderWidth: 1,
+                borderRadius: 14,
+                datalabels: {
+                    anchor: 'end',
+                    align: 'top',
+                    color: '#0d6efd',
+                    font: { weight: 'bold', size: 14 }
+                }
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                datalabels: { display: true }
+            },
+            animation: {
+                duration: 1200,
+                easing: 'easeOutElastic'
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        },
+        plugins: [ChartDataLabels]
+    });
+
+    // Line Chart - Heures supplémentaires par jour
+    const lineCtx = document.getElementById('lineChart');
+    let lineChart = null;
+    
+    // Initialize chart only if canvas exists
+    if (lineCtx) {
+        try {
+            lineChart = new Chart(lineCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Heures supplémentaires',
+                        data: [],
+                        borderColor: '#0d6efd',
+                        backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true,
+                        pointBackgroundColor: '#0d6efd',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointHoverRadius: 5,
+                        pointHoverBackgroundColor: '#0d6efd',
+                        pointHoverBorderColor: '#fff',
+                        pointHoverBorderWidth: 2,
+                        pointHitRadius: 10,
+                        pointStyle: 'circle'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.raw.toFixed(2)} heures`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Heures supplémentaires'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value + 'h';
+                                }
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeInOutQuart'
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Error initializing line chart:', error);
+        }
+    } else {
+        console.error('Could not find line chart canvas');
+    }
+    
+    // Function to fetch and update chart data
+    function updateChartData(personName, monthValue) {
+        if (!personName) {
+            if (lineChart) {
+                lineChart.data.labels = [];
+                lineChart.data.datasets[0].data = [];
+                lineChart.update();
+            }
+            return;
+        }
+
+        let url = `{% url 'pointage:person_hours_data' %}?person=${encodeURIComponent(personName)}`;
+        if (monthValue) {
+            url += `&month=${encodeURIComponent(monthValue)}`;
+        }
+
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data && data.dates && data.hours) {
+                    updateLineChart(data.dates, data.hours, personName);
+                } else {
+                    console.error('Invalid data format:', data);
+                    if (lineChart) {
+                        lineChart.data.labels = [];
+                        lineChart.data.datasets[0].data = [];
+                        lineChart.update();
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching person hours:', error);
+                if (lineChart) {
+                    lineChart.data.labels = [];
+                    lineChart.data.datasets[0].data = [];
+                    lineChart.update();
+                }
+            });
+    }
+
+    // Handle filter changes for all charts
+    document.addEventListener('DOMContentLoaded', function() {
+        // Line chart filters
+        const personSelector = document.getElementById('personSelector');
+        const monthFilter = document.getElementById('monthFilter');
+        
+        // Bar chart filters
+        const barChartDeptFilter = document.getElementById('barChartDeptFilter');
+        const barChartMonthFilter = document.getElementById('barChartMonthFilter');
+        
+        // Horizontal bar chart filter
+        const horizontalBarMonthFilter = document.getElementById('horizontalBarMonthFilter');
+        if (horizontalBarMonthFilter) {
+            horizontalBarMonthFilter.addEventListener('change', function() {
+                updateHorizontalBarChart(this.value);
+            });
+            // Initial load with no filter
+            updateHorizontalBarChart('');
+        }
+        
+        function handleLineChartFilterChange() {
+            const personName = personSelector ? personSelector.value : '';
+            const monthValue = monthFilter ? monthFilter.value : '';
+            updateChartData(personName, monthValue);
+        }
+        
+        function handleBarChartFilterChange() {
+            const deptValue = barChartDeptFilter ? barChartDeptFilter.value : '';
+            const monthValue = barChartMonthFilter ? barChartMonthFilter.value : '';
+            updateBarChart(deptValue, monthValue);
+        }
+        
+        // Line chart event listeners
+        if (personSelector) {
+            personSelector.addEventListener('change', handleLineChartFilterChange);
+        }
+        
+        if (monthFilter) {
+            monthFilter.addEventListener('change', handleLineChartFilterChange);
+        }
+        
+        // Bar chart event listeners
+        if (barChartDeptFilter) {
+            barChartDeptFilter.addEventListener('change', handleBarChartFilterChange);
+        }
+        
+        if (barChartMonthFilter) {
+            barChartMonthFilter.addEventListener('change', handleBarChartFilterChange);
+        }
+        
+        // Initial load of bar chart data
+        handleBarChartFilterChange();
+    });
+    
+    // Function to update the line chart with new data
+    function updateLineChart(dates, hours, personName) {
+        if (lineChart) {
+            lineChart.data.labels = dates;
+            lineChart.data.datasets[0].data = hours;
+            lineChart.data.datasets[0].label = `Heures supplémentaires - ${personName}`;
+            lineChart.update();
+        }
+    }
+    
+    // Pie Chart - Dynamic update with month filter
+    let pieChart;
+    const pieCtx = document.getElementById('pieChart');
+    const pieMonthFilter = document.getElementById('pieChartMonthFilter');
+
+    function fetchAndRenderPieChart(month = '') {
+        let url = '{% url "pointage:pie_chart_data" %}';
+        if (month) {
+            url += `?month=${encodeURIComponent(month)}`;
+        }
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                const labels = data.labels || [];
+                const values = data.data || [];
+                const backgroundColors = labels.map((_, i) => modernColors[i % modernColors.length]);
+                if (pieChart) {
+                    pieChart.data.labels = labels;
+                    pieChart.data.datasets[0].data = values;
+                    pieChart.data.datasets[0].backgroundColor = backgroundColors;
+                    pieChart.data.datasets[0].borderColor = backgroundColors.map(color => color.replace('0.2', '1'));
+                    pieChart.update();
+                } else {
+                    pieChart = new Chart(pieCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Heures supplémentaires',
+                                data: values,
+                                backgroundColor: backgroundColors,
+                                borderColor: backgroundColors.map(color => color.replace('0.2', '1')),
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'right',
+                                    labels: {
+                                        boxWidth: 15,
+                                        padding: 15,
+                                        font: { size: 12 }
+                                    }
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            const label = context.label || '';
+                                            const value = context.raw || 0;
+                                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                            const percentage = Math.round((value / total) * 100);
+                                            return `${label}: ${value.toFixed(2)}h (${percentage}%)`;
+                                        }
+                                    }
+                                },
+                                datalabels: {
+                                    formatter: function(value, context) {
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = Math.round((value / total) * 100);
+                                        return percentage >= 5 ? `${percentage}%` : '';
+                                    },
+                                    color: '#fff',
+                                    font: { weight: 'bold', size: 12 },
+                                    textAlign: 'center',
+                                    textShadowColor: 'rgba(0,0,0,0.5)',
+                                    textShadowBlur: 3
+                                }
+                            },
+                            cutout: '60%',
+                            animation: { duration: 1200, easing: 'easeOutElastic' }
+                        },
+                        plugins: [ChartDataLabels]
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Erreur lors du chargement des données du pie chart:', error);
+            });
+    }
+
+    if (pieCtx) {
+        fetchAndRenderPieChart();
+        if (pieMonthFilter) {
+            pieMonthFilter.addEventListener('change', function() {
+                fetchAndRenderPieChart(this.value);
+            });
+        }
+    }
+
+    // Horizontal Bar Chart (Classement)
+    let horizontalBarChart;
+    
+    // Function to update horizontal bar chart
+    function updateHorizontalBarChart(monthFilter = '') {
+        let url = '{% url "pointage:person_hours_data" %}';
+        if (monthFilter) {
+            url += `?month=${encodeURIComponent(monthFilter)}`;
+        }
+        
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.dates && data.hours) {
+                    // Group data by person
+                    const personHours = {};
+                    data.dates.forEach((date, index) => {
+                        const person = data.names && data.names[index] ? data.names[index] : 'Inconnu';
+                        if (!personHours[person]) {
+                            personHours[person] = 0;
+                        }
+                        personHours[person] += data.hours[index];
+                    });
+                    
+                    // Sort by hours (descending)
+                    const sortedData = Object.entries(personHours)
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 10); // Limit to top 10
+                    
+                    const labels = sortedData.map(item => item[0]);
+                    const hoursData = sortedData.map(item => Math.round(item[1] * 10) / 10); // Round to 1 decimal
+                    
+                    // Update chart data
+                    horizontalBarChart.data.labels = labels;
+                    horizontalBarChart.data.datasets[0].data = hoursData;
+                    horizontalBarChart.update();
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching data for horizontal bar chart:', error);
+            });
+    }
+    
+    // Initialize horizontal bar chart
+    horizontalBarChart = new Chart(document.getElementById('horizontalBarChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Classement Heures Supplémentaires',
+                data: heuresData,
+                backgroundColor: modernColors,
+                borderColor: modernColors,
+                borderWidth: 1,
+                borderRadius: 14,
+                datalabels: {
+                    anchor: 'end',
+                    align: 'right',
+                    color: '#198754',
+                    font: { weight: 'bold', size: 14 }
+                }
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                datalabels: { display: true }
+            },
+            animation: {
+                duration: 1200,
+                easing: 'easeOutElastic'
+            },
+            scales: {
+                x: { beginAtZero: true }
+            }
+        },
+        plugins: [ChartDataLabels]
+    });
+
+    // Radar Chart (Profil)
+    new Chart(document.getElementById('radarChart').getContext('2d'), {
+        type: 'radar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Heures Supplémentaires',
+                data: heuresData,
+                backgroundColor: 'rgba(255, 193, 7, 0.3)',
+                borderColor: 'rgba(255, 193, 7, 1)',
+                pointBackgroundColor: 'rgba(255, 193, 7, 1)',
+                borderWidth: 2,
+                datalabels: {
+                    color: '#ffc107',
+                    font: { weight: 'bold', size: 13 },
+                    align: 'end',
+                    anchor: 'end'
+                }
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' },
+                datalabels: { display: true }
+            },
+            animation: {
+                duration: 1200,
+                easing: 'easeOutElastic'
+            }
+        },
+        plugins: [ChartDataLabels]
+    });
+</script>
+{% endif %}
+{% endblock %} 

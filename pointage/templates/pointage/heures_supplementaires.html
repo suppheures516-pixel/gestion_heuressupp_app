@@ -1,0 +1,99 @@
+{% extends 'pointage/base.html' %}
+{% block title %}Heures Supplémentaires{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card shadow-sm mt-5">
+                <div class="card-body">
+                    <h1 class="card-title mb-4 text-center">Heures Supplémentaires</h1>
+                    <form method="get" class="row g-2 mb-4 align-items-end">
+                        <div class="col-md-5">
+                            <label for="filter_nom" class="form-label">Filtrer par nom</label>
+                            <select name="filter_nom" id="filter_nom" class="form-select">
+                                <option value="">-- Tous --</option>
+                                {% for name in all_names %}
+                                    <option value="{{ name }}" {% if filter_nom == name %}selected{% endif %}>{{ name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <label for="filter_month_year" class="form-label">Filtrer par mois</label>
+                            <select name="filter_month_year" id="filter_month_year" class="form-select">
+                                <option value="">-- Tous --</option>
+                                {% for month_val, month_name in available_months %}
+                                    <option value="{{ month_val }}" {% if filter_month_year == month_val %}selected{% endif %}>{{ month_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="filter_department" class="form-label">Département</label>
+                            <select name="filter_department" id="filter_department" class="form-select">
+                                <option value="">-- Tous --</option>
+                                {% for dept in all_departments %}
+                                    <option value="{{ dept }}" {% if filter_department == dept %}selected{% endif %}>{{ dept }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-grid align-self-end">
+                            <button type="submit" class="btn btn-primary w-100">Filtrer</button>
+                        </div>
+                    </form>
+                    {% if resultats %}
+                        <div class="table-responsive">
+                            <table class="table table-striped custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nom</th>
+                                        <th>Département</th>
+                                        <th>Date</th>
+                                        <th>Entrée</th>
+                                        <th>Sortie</th>
+                                        <th>Heures Supplémentaires</th>
+                                        <th>Week-end</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for r in resultats %}
+                                    <tr>
+                                        <td>{{ r.nom }}</td>
+                                        <td>{{ r.department|default:"-" }}</td>
+                                        <td>{{ r.date }}</td>
+                                        <td>{{ r.in }}</td>
+                                        <td>{{ r.out }}</td>
+                                        <td><strong>{{ r.heures_sup }}</strong></td>
+                                        <td>{% if r.weekend %}<span class="badge bg-success">Oui</span>{% else %}Non{% endif %}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-4 text-end">
+                            {% if total_heures_sup_all is not None and filter_nom or filter_date %}
+                                <span class="fw-bold text-info" style="font-size: 1rem; letter-spacing: 0.3px;">
+                                    <i class="bi bi-collection"></i> Total heures supplémentaires (tous) :
+                                </span>
+                                <span class="badge bg-info shadow-sm" style="padding: 0.4em 0.9em; font-size: 1rem; vertical-align: middle; color: #fff;">
+                                    {{ total_heures_sup_all }}
+                                </span>
+                                <br><span style="display:block; height:0.7em;"></span>
+                                <span class="fw-bold text-primary" style="font-size: 1.1rem; letter-spacing: 0.3px;">
+                                    <i class="bi bi-filter-circle"></i> Total heures supplémentaires (filtré) :
+                                </span>
+                                <span class="badge bg-primary shadow-sm" style="padding: 0.4em 0.9em; font-size: 1rem; vertical-align: middle;">
+                                    {{ total_heures_sup }}
+                                </span>
+                            {% else %}
+                                <span class="fw-bold">Total heures supplémentaires : </span>
+                                <span class="badge bg-primary fs-5">{{ total_heures_sup }}</span>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info mt-3">Aucune heure supplémentaire trouvée pour ces critères.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,40 @@
+# Django and core dependencies
+Django>=5.1.7,<5.2
+django-environ>=0.11.2
+django-cors-headers>=4.3.1
+
+# Database
+psycopg2-binary>=2.9.7
+redis>=5.0.1
+
+# File processing
+pandas>=2.1.0
+openpyxl>=3.1.2
+xlrd>=2.0.1
+# python-magic>=0.4.27  # Optional: for enhanced file type validation
+
+# Security
+django-ratelimit>=4.1.0
+django-axes>=6.1.0
+django-defender>=0.9.0
+
+# Production server
+gunicorn>=21.2.0
+whitenoise>=6.6.0
+
+# Monitoring and logging
+sentry-sdk[django]>=1.38.0
+
+# Development tools (optional)
+django-debug-toolbar>=4.2.0
+django-extensions>=3.2.3
+
+# Testing
+pytest>=7.4.3
+pytest-django>=4.7.0
+factory-boy>=3.3.0
+
+# Code quality
+black>=23.11.0
+flake8>=6.1.0
+isort>=5.12.0 

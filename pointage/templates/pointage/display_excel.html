@@ -1,0 +1,56 @@
+{% extends 'pointage/base.html' %}
+{% block title %}Contenu du fichier Excel{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-9">
+            <div class="card shadow-sm mt-5">
+                <div class="card-body">
+                    <h1 class="card-title mb-4 text-center">Contenu du fichier Excel : {{ filename }}</h1>
+                    {% if colonnes_lues %}
+                        <p><strong>Colonnes détectées dans le fichier :</strong> {{ colonnes_lues|join:', ' }}</p>
+                    {% endif %}
+                    {% if message %}
+                        <div class="alert alert-warning">{{ message|linebreaksbr }}</div>
+                    {% else %}
+                        <form method="get" class="row g-2 mb-4 align-items-end">
+                            <div class="col-md-4">
+                                <label for="filter_col" class="form-label">Filtrer par colonne</label>
+                                <select name="filter_col" id="filter_col" class="form-select">
+                                    <option value="">-- Choisir une colonne --</option>
+                                    {% for col in colonnes_lues %}
+                                        <option value="{{ col }}" {% if filter_col == col %}selected{% endif %}>{{ col }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-5">
+                                <label for="search" class="form-label">Recherche</label>
+                                <input type="text" name="search" id="search" class="form-control" value="{{ search }}" placeholder="Rechercher...">
+                            </div>
+                            <div class="col-md-3 d-grid">
+                                <button type="submit" class="btn btn-primary">Filtrer</button>
+                            </div>
+                        </form>
+                        <div class="table-responsive">
+                            {{ data|safe }}
+                        </div>
+                    {% endif %}
+                    <div class="mt-4 text-center">
+                        <a href="{% url 'pointage:import_excel' %}" class="btn btn-outline-primary">Importer un autre fichier</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+    {{ block.super }}
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('sidebarToggle');
+        toggleBtn.addEventListener('click', function() {
+            sidebar.classList.toggle('closed');
+        });
+    </script>
+{% endblock %} 

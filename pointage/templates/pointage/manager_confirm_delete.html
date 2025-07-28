@@ -1,0 +1,53 @@
+{% extends 'pointage/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        Confirm Deletion
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Are you sure you want to delete this manager?</h5>
+                    
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <strong>Warning:</strong> This action cannot be undone. All data associated with this manager will be permanently deleted.
+                    </div>
+                    
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h6 class="card-subtitle mb-2 text-muted">Manager Details</h6>
+                            <p class="card-text">
+                                <strong>Name:</strong> {{ manager.get_full_name|default:manager.username }}<br>
+                                <strong>Username:</strong> {{ manager.username }}<br>
+                                <strong>Email:</strong> {{ manager.email }}<br>
+                                {% if manager.managerprofile %}
+                                    <strong>Department:</strong> {{ manager.managerprofile.department|default:"Not specified" }}
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'pointage:manager_list' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-lg"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash-fill"></i> Delete Permanently
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

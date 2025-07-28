@@ -1,0 +1,20 @@
+{% extends 'pointage/base.html' %}
+{% block title %}Accueil - Gestion des Heures{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card shadow-sm mt-5">
+                <div class="card-body text-center">
+                    <h1 class="card-title mb-4">Bienvenue sur la gestion des pointages</h1>
+                    <p class="lead mb-4">Importez, visualisez et filtrez vos fichiers Excel de pointage facilement.</p>
+                    <a href="{% url 'pointage:import_excel' %}" class="btn btn-primary btn-lg m-2">Importer un fichier Excel</a>
+                    <a href="{% url 'pointage:list_excels' %}" class="btn btn-outline-primary btn-lg m-2">Voir les fichiers importés</a>
+                    <a href="{% url 'pointage:heures_supplementaires' %}" class="btn btn-success btn-lg m-2">Heures supplémentaires</a>
+                    <a href="{% url 'pointage:statistique' %}" class="btn btn-info btn-lg m-2">Statistiques</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
