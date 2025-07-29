@@ -1,0 +1,59 @@
+services:
+  - type: web
+    name: gestion-heures-app
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn gestion_heures.wsgi:application --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: False
+      - key: ALLOWED_HOSTS
+        value: your-app-name.onrender.com
+      - key: DATABASE_URL
+        value: postgresql://neondb_owner:npg_mnrk0j2MNWOF@ep-square-block-abfm3ciy-pooler.eu-west-2.aws.neon.tech:5432/neondb?sslmode=require
+      - key: SECURE_SSL_REDIRECT
+        value: True
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://your-app-name.onrender.com
+      - key: SESSION_COOKIE_SECURE
+        value: True
+      - key: CSRF_COOKIE_SECURE
+        value: True
+      - key: SECURE_BROWSER_XSS_FILTER
+        value: True
+      - key: SECURE_CONTENT_TYPE_NOSNIFF
+        value: True
+      - key: SECURE_HSTS_SECONDS
+        value: 31536000
+      - key: SECURE_HSTS_INCLUDE_SUBDOMAINS
+        value: True
+      - key: SECURE_HSTS_PRELOAD
+        value: True
+      - key: X_FRAME_OPTIONS
+        value: DENY
+      - key: SECURE_REFERRER_POLICY
+        value: strict-origin-when-cross-origin
+      - key: CSRF_COOKIE_HTTPONLY
+        value: True
+      - key: CSRF_COOKIE_SAMESITE
+        value: Lax
+      - key: SESSION_COOKIE_HTTPONLY
+        value: True
+      - key: SESSION_COOKIE_SAMESITE
+        value: Lax
+      - key: SESSION_COOKIE_AGE
+        value: 3600
+      - key: SESSION_EXPIRE_AT_BROWSER_CLOSE
+        value: True
+      - key: FILE_UPLOAD_MAX_MEMORY_SIZE
+        value: 10485760
+      - key: MAX_UPLOAD_SIZE
+        value: 10485760
+      - key: ADMIN_EMAIL
+        value: admin@yourdomain.com
+      - key: DEFAULT_FROM_EMAIL
+        value: noreply@yourdomain.com 
