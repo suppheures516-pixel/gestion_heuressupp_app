@@ -1,8 +1,8 @@
 services:
   - type: web
-    name: gestion-heures-app
+    name: gestion-heuressupp-app
     env: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: chmod +x build.sh && ./build.sh
     startCommand: gunicorn gestion_heures.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
       - key: PYTHON_VERSION
@@ -12,13 +12,13 @@ services:
       - key: DEBUG
         value: False
       - key: ALLOWED_HOSTS
-        value: gestion-heures-app.onrender.com
+        value: gestion-heuressupp-app.onrender.com
       - key: DATABASE_URL
         value: postgresql://neondb_owner:npg_mnrk0j2MNWOF@ep-square-block-abfm3ciy-pooler.eu-west-2.aws.neon.tech:5432/neondb?sslmode=require
       - key: SECURE_SSL_REDIRECT
         value: True
       - key: CSRF_TRUSTED_ORIGINS
-        value: https://gestion-heures-app.onrender.com
+        value: https://gestion-heuressupp-app.onrender.com
       - key: SESSION_COOKIE_SECURE
         value: True
       - key: CSRF_COOKIE_SECURE
