@@ -21,6 +21,10 @@ from django.contrib.auth import update_session_auth_hash
 from django.http import JsonResponse
 from .validators import validate_excel_file, sanitize_filename
 from django.core.exceptions import ValidationError
+from django.contrib.auth import authenticate, login
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.views import View
 
 UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'uploads')
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -29,6 +33,21 @@ MONTH_NAMES_FR = {
     1: "Janvier", 2: "Février", 3: "Mars", 4: "Avril", 5: "Mai", 6: "Juin",
     7: "Juillet", 8: "Août", 9: "Septembre", 10: "Octobre", 11: "Novembre", 12: "Décembre"
 }
+
+@csrf_exempt
+def custom_login(request):
+    """Custom login view that bypasses CSRF protection"""
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('pointage:accueil')
+        else:
+            messages.error(request, 'Nom d\'utilisateur ou mot de passe incorrect.')
+    
+    return render(request, 'registration/login.html')
 
 @login_required
 def import_excel(request):
