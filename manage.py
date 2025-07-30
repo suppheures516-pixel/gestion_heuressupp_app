@@ -6,7 +6,7 @@ import sys
 
 if __name__ == "__main__":
     # Set the Django settings module
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "gestion_heures.settings")
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "gestion_heures.settings_production")
     
     # Automatically clear all sessions before starting the server
     if 'runserver' in sys.argv:
