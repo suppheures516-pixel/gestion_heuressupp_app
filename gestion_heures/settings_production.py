@@ -32,12 +32,7 @@ X_FRAME_OPTIONS = config('X_FRAME_OPTIONS', default='DENY')
 SECURE_REFERRER_POLICY = config('SECURE_REFERRER_POLICY', default='strict-origin-when-cross-origin')
 
 # CSRF Settings - Fix for Render deployment
-CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default=[
-    'https://gestion-heuressupp-app.onrender.com',
-    'http://gestion-heuressupp-app.onrender.com',
-    'https://*.onrender.com',
-    'http://*.onrender.com',
-]).split(',') if isinstance(config('CSRF_TRUSTED_ORIGINS', default=''), str) else [
+CSRF_TRUSTED_ORIGINS = [
     'https://gestion-heuressupp-app.onrender.com',
     'http://gestion-heuressupp-app.onrender.com',
     'https://*.onrender.com',
@@ -47,6 +42,12 @@ CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default=[
 # Additional CSRF settings for production
 CSRF_COOKIE_HTTPONLY = config('CSRF_COOKIE_HTTPONLY', default=True, cast=bool)
 CSRF_COOKIE_SAMESITE = config('CSRF_COOKIE_SAMESITE', default='Lax')
+
+# Temporary CSRF settings for debugging
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = False
+CSRF_USE_SESSIONS = False
+CSRF_COOKIE_AGE = None
 
 # Application definition
 INSTALLED_APPS = [
