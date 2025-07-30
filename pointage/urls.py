@@ -5,7 +5,6 @@ from django.contrib.auth.decorators import login_required
 app_name = 'pointage'
 
 urlpatterns = [
-    path('accounts/login/', views.custom_login, name='custom_login'),
     path('', views.accueil, name='accueil'),
     path('import/', views.import_excel, name='import_excel'),
     path('excels/', views.list_excels, name='list_excels'),
