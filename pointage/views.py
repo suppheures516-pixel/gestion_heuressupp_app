@@ -49,6 +49,13 @@ def custom_login(request):
     
     return render(request, 'registration/login.html')
 
+@csrf_exempt
+def custom_logout(request):
+    """Custom logout view that bypasses CSRF protection"""
+    from django.contrib.auth import logout
+    logout(request)
+    return redirect('pointage:accueil')
+
 @login_required
 def import_excel(request):
     if request.method == 'POST' and request.FILES.get('excel_file'):
