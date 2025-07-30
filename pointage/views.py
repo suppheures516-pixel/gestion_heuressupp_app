@@ -88,11 +88,23 @@ def import_excel(request):
 def display_excel(request, filename):
     # Find the file in the database
     try:
+        # Look for files that end with the filename (handles uploads/ prefix)
         uploaded_file = UploadedExcel.objects.get(file__endswith=filename)
         file_path = uploaded_file.file.path
     except UploadedExcel.DoesNotExist:
-        messages.error(request, f'File "{filename}" not found.')
-        return redirect('pointage:list_excels')
+        # Try alternative lookup methods
+        try:
+            # Try looking for exact filename match
+            uploaded_file = UploadedExcel.objects.get(file__name=filename)
+            file_path = uploaded_file.file.path
+        except UploadedExcel.DoesNotExist:
+            try:
+                # Try looking for files with uploads/ prefix
+                uploaded_file = UploadedExcel.objects.get(file__name=f'uploads/{filename}')
+                file_path = uploaded_file.file.path
+            except UploadedExcel.DoesNotExist:
+                messages.error(request, f'File "{filename}" not found.')
+                return redirect('pointage:list_excels')
     
     df = pd.read_excel(file_path)
     colonnes_voulues = ["date", "name", "in", "out"]
@@ -337,11 +349,23 @@ def heures_supplementaires(request):
 def heures_supplementaires_file(request, filename):
     # Find the file in the database
     try:
+        # Look for files that end with the filename (handles uploads/ prefix)
         uploaded_file = UploadedExcel.objects.get(file__endswith=unquote(filename))
         file_path = uploaded_file.file.path
     except UploadedExcel.DoesNotExist:
-        messages.error(request, f'File "{filename}" not found.')
-        return redirect('pointage:list_excels')
+        # Try alternative lookup methods
+        try:
+            # Try looking for exact filename match
+            uploaded_file = UploadedExcel.objects.get(file__name=unquote(filename))
+            file_path = uploaded_file.file.path
+        except UploadedExcel.DoesNotExist:
+            try:
+                # Try looking for files with uploads/ prefix
+                uploaded_file = UploadedExcel.objects.get(file__name=f'uploads/{unquote(filename)}')
+                file_path = uploaded_file.file.path
+            except UploadedExcel.DoesNotExist:
+                messages.error(request, f'File "{filename}" not found.')
+                return redirect('pointage:list_excels')
     
     resultats = []
     try:
