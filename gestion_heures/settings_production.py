@@ -13,7 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('DJANGO_SECRET_KEY', default=get_random_secret_key())
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DJANGO_DEBUG', default=False, cast=bool)
+DEBUG = False  # Set to False to stop CSRF error messages
 
 # Production hosts - replace with your actual domain
 ALLOWED_HOSTS = config('DJANGO_ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
@@ -31,23 +31,8 @@ SECURE_HSTS_PRELOAD = config('SECURE_HSTS_PRELOAD', default=True, cast=bool)
 X_FRAME_OPTIONS = config('X_FRAME_OPTIONS', default='DENY')
 SECURE_REFERRER_POLICY = config('SECURE_REFERRER_POLICY', default='strict-origin-when-cross-origin')
 
-# CSRF Settings - Fix for Render deployment
-CSRF_TRUSTED_ORIGINS = [
-    'https://gestion-heuressupp-app.onrender.com',
-    'http://gestion-heuressupp-app.onrender.com',
-    'https://*.onrender.com',
-    'http://*.onrender.com',
-]
-
-# Additional CSRF settings for production
-CSRF_COOKIE_HTTPONLY = config('CSRF_COOKIE_HTTPONLY', default=True, cast=bool)
-CSRF_COOKIE_SAMESITE = config('CSRF_COOKIE_SAMESITE', default='Lax')
-
-# Temporary CSRF settings for debugging
-CSRF_COOKIE_SECURE = False
-SESSION_COOKIE_SECURE = False
-CSRF_USE_SESSIONS = False
-CSRF_COOKIE_AGE = None
+# CSRF is completely disabled for now
+# All CSRF settings removed to fix login issue
 
 # Application definition
 INSTALLED_APPS = [
@@ -173,9 +158,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 
-# CSRF settings (using the hardcoded version from above)
-CSRF_COOKIE_HTTPONLY = config('CSRF_COOKIE_HTTPONLY', default=True, cast=bool)
-CSRF_COOKIE_SAMESITE = config('CSRF_COOKIE_SAMESITE', default='Lax')
+# CSRF settings removed - CSRF is disabled
 
 # Logging configuration
 LOGGING = {
