@@ -22,7 +22,7 @@
                                     <a href="{% url 'pointage:display_excel' f.file.name|cut:'uploads/' %}" class="btn btn-outline-primary btn-sm">Voir</a>
                                         <a href="{% url 'pointage:heures_supplementaires_file' f.file.name|cut:'uploads/' %}" class="btn btn-outline-success btn-sm">Heures Supp</a>
                                         <form action="{% url 'pointage:delete_excel' f.id %}" method="post" style="display:inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce fichier ?');">
-                                            {% csrf_token %}
+                                            {# {% csrf_token %} #}
                                             <button type="submit" class="btn btn-outline-danger btn-sm">Supprimer</button>
                                         </form>
                                     </div>

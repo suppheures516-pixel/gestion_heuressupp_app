@@ -83,7 +83,7 @@
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                                                 <form action="{% url 'pointage:manager_delete' manager.id %}" method="post" style="display: inline;">
-                                                    {% csrf_token %}
+                                                    {# {% csrf_token %} #}
                                                     <button type="submit" class="btn btn-danger">Delete</button>
                                                 </form>
                                             </div>
