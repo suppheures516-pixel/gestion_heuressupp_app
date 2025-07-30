@@ -26,7 +26,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.views import View
 
-UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'uploads')
+from django.conf import settings
+UPLOAD_DIR = settings.MEDIA_ROOT
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 MONTH_NAMES_FR = {
@@ -85,7 +86,14 @@ def import_excel(request):
     return render(request, 'pointage/import_excel.html')
 
 def display_excel(request, filename):
-    file_path = os.path.join(UPLOAD_DIR, filename)
+    # Find the file in the database
+    try:
+        uploaded_file = UploadedExcel.objects.get(file__endswith=filename)
+        file_path = uploaded_file.file.path
+    except UploadedExcel.DoesNotExist:
+        messages.error(request, f'File "{filename}" not found.')
+        return redirect('pointage:list_excels')
+    
     df = pd.read_excel(file_path)
     colonnes_voulues = ["date", "name", "in", "out"]
     mapping = {col.lower(): col for col in df.columns}
@@ -327,7 +335,14 @@ def heures_supplementaires(request):
 
 @login_required
 def heures_supplementaires_file(request, filename):
-    file_path = os.path.join(UPLOAD_DIR, unquote(filename))
+    # Find the file in the database
+    try:
+        uploaded_file = UploadedExcel.objects.get(file__endswith=unquote(filename))
+        file_path = uploaded_file.file.path
+    except UploadedExcel.DoesNotExist:
+        messages.error(request, f'File "{filename}" not found.')
+        return redirect('pointage:list_excels')
+    
     resultats = []
     try:
         df = pd.read_excel(file_path)

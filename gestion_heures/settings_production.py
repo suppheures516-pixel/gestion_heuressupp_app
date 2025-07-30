@@ -208,6 +208,9 @@ LOGGING = {
 # Create logs directory
 os.makedirs(BASE_DIR / 'logs', exist_ok=True)
 
+# Create media directory
+os.makedirs(MEDIA_ROOT, exist_ok=True)
+
 # Cache configuration (use Redis in production)
 CACHES = {
     'default': {
