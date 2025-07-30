@@ -253,7 +253,8 @@ def heures_supplementaires(request):
     resultats = []
     for uploaded_file in excel_files:
         try:
-            df = pd.read_excel(uploaded_file.file.path)
+            with uploaded_file.file.open('rb') as file:
+                df = pd.read_excel(file)
             mapping = {col.lower().strip(): col for col in df.columns}
 
             name_col = mapping.get('name')
@@ -551,7 +552,8 @@ def get_person_hours_data(request):
     records = []
     for uploaded_file in files:
         try:
-            df = pd.read_excel(uploaded_file.file.path)
+            with uploaded_file.file.open('rb') as file:
+                df = pd.read_excel(file)
             mapping = {col.lower().strip(): col for col in df.columns}
             
             # Check if required columns exist
@@ -681,7 +683,8 @@ def get_available_months():
                 
             # Read the Excel file
             try:
-                df = pd.read_excel(uploaded_file.file.path)
+                with uploaded_file.file.open('rb') as file:
+                    df = pd.read_excel(file)
                 print(f"Successfully read Excel file")
                 print(f"Columns in file: {df.columns.tolist()}")
                 print(f"First few rows of data:\n{df.head()}")
@@ -760,7 +763,8 @@ def statistique(request):
     all_records = []
     for uploaded_file in excel_files:
         try:
-            df = pd.read_excel(uploaded_file.file.path)
+            with uploaded_file.file.open('rb') as file:
+                df = pd.read_excel(file)
             mapping = {col.lower().strip(): col for col in df.columns}
             
             name_col = mapping.get('name')
@@ -967,7 +971,8 @@ def pie_chart_data(request):
     dept_hours = defaultdict(float)
     for uploaded_file in files:
         try:
-            df = pd.read_excel(uploaded_file.file.path)
+            with uploaded_file.file.open('rb') as file:
+                df = pd.read_excel(file)
             mapping = {col.lower().strip(): col for col in df.columns}
 
             name_col = mapping.get('name')
