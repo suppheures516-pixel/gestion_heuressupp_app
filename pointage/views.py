@@ -90,23 +90,26 @@ def display_excel(request, filename):
     try:
         # Look for files that end with the filename (handles uploads/ prefix)
         uploaded_file = UploadedExcel.objects.get(file__endswith=filename)
-        file_path = uploaded_file.file.path
     except UploadedExcel.DoesNotExist:
         # Try alternative lookup methods
         try:
             # Try looking for exact filename match
             uploaded_file = UploadedExcel.objects.get(file__name=filename)
-            file_path = uploaded_file.file.path
         except UploadedExcel.DoesNotExist:
             try:
                 # Try looking for files with uploads/ prefix
                 uploaded_file = UploadedExcel.objects.get(file__name=f'uploads/{filename}')
-                file_path = uploaded_file.file.path
             except UploadedExcel.DoesNotExist:
                 messages.error(request, f'File "{filename}" not found.')
                 return redirect('pointage:list_excels')
     
-    df = pd.read_excel(file_path)
+    # Use Django's file storage to open the file
+    try:
+        with uploaded_file.file.open('rb') as file:
+            df = pd.read_excel(file)
+    except Exception as e:
+        messages.error(request, f'Error reading file: {str(e)}')
+        return redirect('pointage:list_excels')
     colonnes_voulues = ["date", "name", "in", "out"]
     mapping = {col.lower(): col for col in df.columns}
     colonnes_presentes = [mapping[c] for c in colonnes_voulues if c in mapping]
@@ -351,25 +354,24 @@ def heures_supplementaires_file(request, filename):
     try:
         # Look for files that end with the filename (handles uploads/ prefix)
         uploaded_file = UploadedExcel.objects.get(file__endswith=unquote(filename))
-        file_path = uploaded_file.file.path
     except UploadedExcel.DoesNotExist:
         # Try alternative lookup methods
         try:
             # Try looking for exact filename match
             uploaded_file = UploadedExcel.objects.get(file__name=unquote(filename))
-            file_path = uploaded_file.file.path
         except UploadedExcel.DoesNotExist:
             try:
                 # Try looking for files with uploads/ prefix
                 uploaded_file = UploadedExcel.objects.get(file__name=f'uploads/{unquote(filename)}')
-                file_path = uploaded_file.file.path
             except UploadedExcel.DoesNotExist:
                 messages.error(request, f'File "{filename}" not found.')
                 return redirect('pointage:list_excels')
     
     resultats = []
     try:
-        df = pd.read_excel(file_path)
+        # Use Django's file storage to open the file
+        with uploaded_file.file.open('rb') as file:
+            df = pd.read_excel(file)
         mapping = {col.lower().strip(): col for col in df.columns}
 
         name_col = mapping.get('name')
