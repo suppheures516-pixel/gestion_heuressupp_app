@@ -464,7 +464,7 @@ def heures_supplementaires_file(request, filename):
                     
                 processed_rows += 1
                 
-                        except Exception as e:
+            except Exception as e:
                 skipped_rows += 1
                 continue
         
