@@ -467,6 +467,8 @@ def heures_supplementaires_file(request, filename):
             except Exception as e:
                 skipped_rows += 1
                 continue
+    except Exception as e:
+        pass
         
     all_names = sorted(list(set(str(r['nom']) for r in resultats)))
     all_departments = sorted(list(set(r['department'] for r in resultats if r.get('department'))))
