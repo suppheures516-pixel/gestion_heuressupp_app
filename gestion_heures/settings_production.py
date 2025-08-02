@@ -127,7 +127,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = BASE_DIR / 'uploads'
 
 # File upload security
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
@@ -208,7 +208,7 @@ LOGGING = {
 # Create logs directory
 os.makedirs(BASE_DIR / 'logs', exist_ok=True)
 
-# Create media directory
+# Create uploads directory
 os.makedirs(MEDIA_ROOT, exist_ok=True)
 
 # Cache configuration (use Redis in production)

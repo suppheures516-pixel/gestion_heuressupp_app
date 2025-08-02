@@ -266,14 +266,23 @@ def heures_supplementaires(request):
             if not all([name_col, in_col, out_col, date_col]):
                 continue
 
-            for _, row in df.iterrows():
+            processed_rows = 0
+            skipped_rows = 0
+            overtime_found = 0
+            
+            for idx, row in df.iterrows():
                 try:
                     heure_in = str(row[in_col]).strip()
                     heure_out = str(row[out_col]).strip()
-                    if not heure_in or not heure_out or heure_in.lower() == 'nan' or heure_out.lower() == 'nan':
+                    if not heure_in or not heure_out or heure_in.lower() == 'nan' or heure_out.lower() == 'nan' or heure_in == '-' or heure_out == '-':
+                        skipped_rows += 1
                         continue
-                    t_in = datetime.strptime(heure_in, '%H:%M') if len(heure_in) <= 5 else datetime.strptime(heure_in, '%H:%M:%S')
-                    t_out = datetime.strptime(heure_out, '%H:%M') if len(heure_out) <= 5 else datetime.strptime(heure_out, '%H:%M:%S')
+                    try:
+                        t_in = datetime.strptime(heure_in, '%H:%M') if len(heure_in) <= 5 else datetime.strptime(heure_in, '%H:%M:%S')
+                        t_out = datetime.strptime(heure_out, '%H:%M') if len(heure_out) <= 5 else datetime.strptime(heure_out, '%H:%M:%S')
+                    except ValueError:
+                        skipped_rows += 1
+                        continue
                     duree = (t_out - t_in)
                     if duree < timedelta(0):
                         duree += timedelta(days=1)
@@ -293,12 +302,14 @@ def heures_supplementaires(request):
                             except Exception:
                                 continue
                         if not date_obj:
+                            skipped_rows += 1
                             continue  # Si aucun format ne marche, ignorer la ligne
                     if date_obj.weekday() in [5, 6]:  # 5=Samedi, 6=Dimanche
                         heures_sup = heures_travaillees_arr
                     else:
                         heures_sup = max(0, heures_travaillees_arr - 8)
                     if heures_sup > 0:
+                        overtime_found += 1
                         employee_name_raw = str(row[name_col]).strip()
                         department = str(row[dept_col]) if dept_col and pd.notna(row[dept_col]) else None
                         resultats.append({
@@ -311,9 +322,14 @@ def heures_supplementaires(request):
                             'heures_sup': heures_sup,
                             'weekend': date_obj.weekday() in [5, 6],
                         })
-                except Exception:
+                    processed_rows += 1
+                except Exception as e:
+                    print(f"DEBUG: Error processing row {idx}: {e}")
+                    skipped_rows += 1
                     continue
-        except Exception:
+                    
+            pass
+        except Exception as e:
             continue
     
     all_names = sorted(list(set(str(r['nom']) for r in resultats)))
@@ -384,19 +400,32 @@ def heures_supplementaires_file(request, filename):
         if not all([name_col, in_col, out_col, date_col]):
             return render(request, 'pointage/heures_supplementaires.html', {'resultats': [], 'error': 'Colonnes requises manquantes.'})
 
-        for _, row in df.iterrows():
+        processed_rows = 0
+        skipped_rows = 0
+        overtime_found = 0
+        
+        for idx, row in df.iterrows():
             try:
                 heure_in = str(row[in_col]).strip()
                 heure_out = str(row[out_col]).strip()
-                if not heure_in or not heure_out or heure_in.lower() == 'nan' or heure_out.lower() == 'nan':
+                
+                if not heure_in or not heure_out or heure_in.lower() == 'nan' or heure_out.lower() == 'nan' or heure_in == '-' or heure_out == '-':
+                    skipped_rows += 1
                     continue
-                t_in = datetime.strptime(heure_in, '%H:%M') if len(heure_in) <= 5 else datetime.strptime(heure_in, '%H:%M:%S')
-                t_out = datetime.strptime(heure_out, '%H:%M') if len(heure_out) <= 5 else datetime.strptime(heure_out, '%H:%M:%S')
+                    
+                try:
+                    t_in = datetime.strptime(heure_in, '%H:%M') if len(heure_in) <= 5 else datetime.strptime(heure_in, '%H:%M:%S')
+                    t_out = datetime.strptime(heure_out, '%H:%M') if len(heure_out) <= 5 else datetime.strptime(heure_out, '%H:%M:%S')
+                except ValueError:
+                    skipped_rows += 1
+                    continue
+                    
                 duree = (t_out - t_in)
                 if duree < timedelta(0):
                     duree += timedelta(days=1)
                 heures_travaillees = duree.total_seconds() / 3600
                 heures_travaillees_arr = math.ceil(heures_travaillees)
+                
                 date_val = row[date_col]
                 date_obj = None
                 if isinstance(date_val, datetime):
@@ -410,12 +439,16 @@ def heures_supplementaires_file(request, filename):
                         except Exception:
                             continue
                     if not date_obj:
+                        skipped_rows += 1
                         continue
+                        
                 if date_obj.weekday() in [5, 6]:
                     heures_sup = heures_travaillees_arr
                 else:
                     heures_sup = max(0, heures_travaillees_arr - 8)
+                    
                 if heures_sup > 0:
+                    overtime_found += 1
                     employee_name_raw = str(row[name_col]).strip()
                     department = str(row[dept_col]) if dept_col and pd.notna(row[dept_col]) else None
                     resultats.append({
@@ -428,10 +461,12 @@ def heures_supplementaires_file(request, filename):
                         'heures_sup': heures_sup,
                         'weekend': date_obj.weekday() in [5, 6],
                     })
-            except Exception:
+                    
+                processed_rows += 1
+                
+                        except Exception as e:
+                skipped_rows += 1
                 continue
-    except Exception:
-        pass
         
     all_names = sorted(list(set(str(r['nom']) for r in resultats)))
     all_departments = sorted(list(set(r['department'] for r in resultats if r.get('department'))))

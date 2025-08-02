@@ -25,6 +25,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/login/', custom_login, name='login'),  # Override Django's login
     path('accounts/logout/', custom_logout, name='logout'),  # Override Django's logout
-    path('pointage/', include('pointage.urls', namespace='pointage')),
-    path('', include('pointage.urls')),  # Keep this for backward compatibility
+    path('', include('pointage.urls', namespace='pointage')),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
